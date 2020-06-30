@@ -8,7 +8,10 @@ export const config = {
         dialect: process.env.POSTGRES_DIALECT,
         aws_region: process.env.POSTGRES_AWS_REGION,
         aws_profile: process.env.POSTGRES_AWS_PROFILE,
-        aws_media_bucket: process.env.POSTGRES_AWS_MEDIA_BUCKET
+        aws_media_bucket: process.env.POSTGRES_AWS_MEDIA_BUCKET,
+        jwt : {
+            secret: "Hellojwt"
+        }
     },
     prod: {
         username: "udagramamokrane",
