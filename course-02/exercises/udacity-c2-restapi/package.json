@@ -10,14 +10,16 @@
     "prod": "tsc && node ./www/server.js",
     "clean": "rm -rf www/ || true",
     "build": "npm run clean && tsc && cp -rf src/config www/config && cp .npmrc www/.npmrc && cp package.json www/package.json && cd www && zip -r Archive.zip . && cd ..",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r ts-node/register src/**/*.tests.ts"
   },
   "keywords": [],
   "author": "Gabriel Ruttner",
   "license": "ISC",
   "dependencies": {
     "@types/bcrypt": "^3.0.0",
+    "@types/chai": "^4.2.11",
     "@types/jsonwebtoken": "^8.3.2",
+    "@types/mocha": "^7.0.2",
     "aws-sdk": "^2.492.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
@@ -38,7 +40,7 @@
     "@types/validator": "^10.11.1",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.3",
     "ts-node-dev": "^1.0.0-pre.40",
     "tslint": "^5.18.0",
     "typescript": "^3.9.5"

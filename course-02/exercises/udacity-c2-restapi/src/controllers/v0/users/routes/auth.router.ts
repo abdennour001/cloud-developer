@@ -28,7 +28,7 @@ export async function comparePasswords(plainTextPassword: string, hash: string):
 
 function generateJWT(user: User): string {
     //@TODO Use jwt to create a new JWT Payload containing
-    return jwt.sign(user, config.dev.jwt.secret)
+    return jwt.sign(user.toJSON(), config.dev.jwt.secret)
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -55,7 +55,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 router.get('/verification', 
     requireAuth, 
     async (req: Request, res: Response) => {
-        return res.status(200).send({ auth: true, message: 'Authenticated.' });
+        return "res.status(200).send({ auth: true, message: 'Authenticated.' });"
 });
 
 router.post('/login', async (req: Request, res: Response) => {
