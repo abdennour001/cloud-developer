@@ -10,7 +10,6 @@ import { requireAuth } from "./controllers/auth/routes/auth.router";
 (async () => {
     // Init sequelize.
     await sequelize.addModels(MODELS);
-    await sequelize.sync();
 
     // Init the Express application
     const app = express();
