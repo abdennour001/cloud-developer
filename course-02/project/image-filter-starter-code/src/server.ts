@@ -2,8 +2,16 @@ import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 var validUrl = require("valid-url");
 import { filterImageFromURL, deleteLocalFiles } from "./util/util";
+import { sequelize } from "./sequelize";
+import { MODELS } from "./controllers/auth/model.index";
+import { IndexRouter } from "./controllers/auth/index.router";
+import { requireAuth } from "./controllers/auth/routes/auth.router";
 
 (async () => {
+    // Init sequelize.
+    await sequelize.addModels(MODELS);
+    await sequelize.sync();
+
     // Init the Express application
     const app = express();
 
@@ -31,6 +39,7 @@ import { filterImageFromURL, deleteLocalFiles } from "./util/util";
 
     app.get(
         "/filteredimage",
+        requireAuth,
         async (req: Request, res: Response, next: Function) => {
             const { image_url } = req.query;
 
@@ -74,6 +83,11 @@ import { filterImageFromURL, deleteLocalFiles } from "./util/util";
     app.get("/", async (req, res) => {
         res.send("try GET /filteredimage?image_url={{}}");
     });
+
+
+    // Include Auth Routers
+    app.use('/', IndexRouter)
+
 
     // Start the Server
     app.listen(port, () => {
