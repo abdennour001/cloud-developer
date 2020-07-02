@@ -4,7 +4,7 @@ import { Sequelize } from "sequelize-typescript";
 const c = config.dev.postgres;
 
 // Instantiate new Sequelize instance!
-export const sequelize = new Sequelize({
+const sequelize = new Sequelize({
     username: c.username,
     password: c.password,
     database: c.database,
@@ -14,3 +14,5 @@ export const sequelize = new Sequelize({
     dialect: "postgres",
     storage: ":memory:"
 });
+
+export default sequelize;

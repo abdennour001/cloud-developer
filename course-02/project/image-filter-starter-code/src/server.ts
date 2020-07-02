@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 var validUrl = require("valid-url");
 import { filterImageFromURL, deleteLocalFiles } from "./util/util";
-import { sequelize } from "./sequelize";
+import sequelize from "./sequelize";
 import { MODELS } from "./controllers/auth/model.index";
 import { IndexRouter } from "./controllers/auth/index.router";
 import { requireAuth } from "./controllers/auth/routes/auth.router";
