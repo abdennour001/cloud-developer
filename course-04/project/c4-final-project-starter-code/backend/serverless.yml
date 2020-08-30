@@ -21,8 +21,36 @@ provider:
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
     AUTH_0_SECRET_FIELD: auth0Secret
 
-functions:
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+    - Effect:
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Ressource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
 
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Todos API
+        description: Serverless application for personal todos
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(requests/create-todo-request.json)}
+      - name: UpdateTodoRequest
+        contentType: application/json
+        schema: ${file(requests/update-todo-request.json)}
+
+functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -33,15 +61,22 @@ functions:
       - http:
           method: get
           path: todos
+          cors: true
 
-  # TODO: Configure this function
-  GetTodos:
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
     events:
       - http:
           method: post
           path: todos
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new Todo
+            description: Create a new Todo in DynamoDB
+            requestModels:
+              'application/json': CreateTodoRequest
 
   # TODO: Configure this function
   UpdateTodo:
@@ -50,6 +85,14 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
+          cors: true
+          authorize: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update Todo
+            description: Update Todo in DynamoDB
+            requestModels:
+              'application/json': UpdateTodoRequest
 
   # TODO: Configure this function
   DeleteTodo:
@@ -58,15 +101,97 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
+          authorize: Auth
+          documentation:
+            summary: Delete a Todo
+            description: Delete a Todo in DynamoDB
 
   # TODO: Configure this function
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
-          method: post
+          # changed method to get because we are not sending data to the server
+          method: get
           path: todos/{todoId}/attachment
+          cors: true
 
 resources:
   Resources:
     # TODO: Add any necessary AWS resources
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
+    TodoDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: todoId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+          - AttributeName: name
+            AttributeType: S
+          - AttributeName: dueDate
+            AttributeType: S
+          - AttributeName: done
+            AttributeType: BOOL
+          - AttributeName: attachmentUrl
+            AttributeType: S
+        KeySchema:
+          - AttributeName: todoId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.TODOS_TABLE}
+
+        RequestBodyValidator:
+          Type: AWS::ApiGateway::RequestValidator
+          Properties:
+            Name: 'request-body-validator'
+            RestApiId:
+              Ref: ApiGatewayRestApi
+            ValidateRequestBody: true
+            ValidateRequestParameters: false
+
+        AttachmentsBucket:
+          Type: AWS::S3::Bucket
+          Properties:
+            BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
+            CorsConfiguration:
+              CorsRules:
+                - AllowedOrigins:
+                    - '*'
+                  AllowedHeaders:
+                    - '*'
+                  AllowedMethods:
+                    - GET
+                    - PUT
+                    - POST
+                    - DELETE
+                    - HEAD
+                  MaxAge: 3000
+
+        BucketPolicy:
+          Type: AWS::S3::BucketPolicy
+          Properties:
+            PolicyDocument:
+              Id: MyPolicy
+              Version: '2012-10-17'
+              Statement:
+                - Sid: PublicReadForGetBucketObjects
+                  Effect: Allow
+                  Principal: '*'
+                  Action: 's3:GetObject'
+                  Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
+            Bucket: !Ref AttachmentsBucket
