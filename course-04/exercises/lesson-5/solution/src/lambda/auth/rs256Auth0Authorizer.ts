@@ -4,7 +4,7 @@ import "source-map-support/register";
 import { verify } from "jsonwebtoken";
 import { JwtToken } from "../../auth/JwtToken";
 
-const cert = `
+const cert = `-----BEGIN CERTIFICATE-----
 MIIDBzCCAe+gAwIBAgIJG/k0bAtoy6+AMA0GCSqGSIb3DQEBCwUAMCExHzAdBgNV
 BAMTFmFiZGVubm91ci5ldS5hdXRoMC5jb20wHhcNMjAwODMwMTMxOTU0WhcNMzQw
 NTA5MTMxOTU0WjAhMR8wHQYDVQQDExZhYmRlbm5vdXIuZXUuYXV0aDAuY29tMIIB
@@ -21,7 +21,8 @@ wU7d0MGqJJcXSPPLOAmCgR0P85SkjukTmwF8Ve/p3wLwRgULFY2P9f7M08e/RbXw
 bAS/NZ569nRQWO2ynOCXTO6f0wCNMzInq0NZQvLnrNojOgoDSXIn8QM/yvDL2GmL
 /nCwpL1VzC1cN0+s4cVxck2Jd07vBOkFVP/1uhC+B1yi+wQXQhV5wmsDTNXnhgPx
 N3SR8lYOb8EedfYEjimgXubkELKKozwSsEDchfpHxRiWYQxUVLOCqPiBa1kaPWlU
-Kd98fPfDevELVas=`;
+Kd98fPfDevELVas=
+-----END CERTIFICATE-----`;
 
 export const handler = async (
     event: CustomAuthorizerEvent
