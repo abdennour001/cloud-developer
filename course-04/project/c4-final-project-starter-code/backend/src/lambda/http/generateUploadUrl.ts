@@ -7,11 +7,9 @@ import {
 } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
 
-const docClient = new AWS.DynamoDB.DocumentClient()
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
 })
-const todosTable = process.env.TODOS_TABLE
 const bucketName = process.env.IMAGES_S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 
@@ -35,7 +33,7 @@ export const handler: APIGatewayProxyHandler = async (
 function getUploadUrl(todoId: string) {
   return s3.getSignedUrl('putObject', {
     Bucket: bucketName,
-    Key: imageId,
+    Key: todoId,
     Expires: urlExpiration
   })
 }

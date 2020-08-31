@@ -29,11 +29,11 @@ provider:
         - dynamodb:GetItem
         - dynamodb:Query
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-    - Effect:
+    - Effect: Allow
       Action:
         - s3:PutObject
         - s3:GetObject
-      Ressource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
+      Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
 
 custom:
   documentation:
@@ -45,10 +45,10 @@ custom:
     models:
       - name: CreateTodoRequest
         contentType: application/json
-        schema: ${file(requests/create-todo-request.json)}
+        schema: ${file(src/requests/create-todo-request.json)}
       - name: UpdateTodoRequest
         contentType: application/json
-        schema: ${file(requests/update-todo-request.json)}
+        schema: ${file(src/requests/update-todo-request.json)}
 
 functions:
   Auth:
@@ -153,43 +153,43 @@ resources:
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
 
-        RequestBodyValidator:
-          Type: AWS::ApiGateway::RequestValidator
-          Properties:
-            Name: 'request-body-validator'
-            RestApiId:
-              Ref: ApiGatewayRestApi
-            ValidateRequestBody: true
-            ValidateRequestParameters: false
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
 
-        AttachmentsBucket:
-          Type: AWS::S3::Bucket
-          Properties:
-            BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
-            CorsConfiguration:
-              CorsRules:
-                - AllowedOrigins:
-                    - '*'
-                  AllowedHeaders:
-                    - '*'
-                  AllowedMethods:
-                    - GET
-                    - PUT
-                    - POST
-                    - DELETE
-                    - HEAD
-                  MaxAge: 3000
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
 
-        BucketPolicy:
-          Type: AWS::S3::BucketPolicy
-          Properties:
-            PolicyDocument:
-              Id: MyPolicy
-              Version: '2012-10-17'
-              Statement:
-                - Sid: PublicReadForGetBucketObjects
-                  Effect: Allow
-                  Principal: '*'
-                  Action: 's3:GetObject'
-                  Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
-            Bucket: !Ref AttachmentsBucket
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: '2012-10-17'
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
+        Bucket: !Ref AttachmentsBucket

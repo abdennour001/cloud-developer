@@ -3,9 +3,10 @@ import 'source-map-support/register'
 
 import { verify, decode } from 'jsonwebtoken'
 import { createLogger } from '../../utils/logger'
-import Axios from 'axios'
+// import Axios from 'axios'
 import { Jwt } from '../../auth/Jwt'
 import { JwtPayload } from '../../auth/JwtPayload'
+import fetch from 'node-fetch'
 
 const logger = createLogger('auth')
 
@@ -55,13 +56,25 @@ export const handler = async (
 }
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
+  console.log(authHeader)
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
-
+  let cert = ''
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return verify(token, cert, { algorithms: ["RS256"] }) as JwtToken;
+
+  const kid = jwt.header.kid
+  fetch(jwksUrl)
+    .then(res => res.json())
+    .then(out => {
+      console.log(out)
+      // we get the jwk set here
+      const jwks = out
+      const key = jwks.find(k => k.kid === kid)
+      cert = key.x5c[0]
+    })
+  return verify(token, cert, { algorithms: ['RS256'] }) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
