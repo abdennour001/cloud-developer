@@ -10,6 +10,7 @@ import { getUserId } from '../utils'
 
 const docClient = new AWS.DynamoDB.DocumentClient()
 const todosTable = process.env.TODOS_TABLE
+const userIdIndex = process.env.USER_ID_INDEX
 
 export const handler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent
@@ -19,6 +20,7 @@ export const handler: APIGatewayProxyHandler = async (
   const result = await docClient
     .query({
       TableName: todosTable,
+      IndexName: userIdIndex,
       KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
         ':userId': getUserId(event)
@@ -26,21 +28,11 @@ export const handler: APIGatewayProxyHandler = async (
     })
     .promise()
 
-  if (result.Count !== 0) {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify(result.Items)
-    }
-  }
-
   return {
-    statusCode: 404,
+    statusCode: 200,
     headers: {
       'Access-Control-Allow-Origin': '*'
     },
-    body: ''
+    body: JSON.stringify({ items: result.Items })
   }
 }

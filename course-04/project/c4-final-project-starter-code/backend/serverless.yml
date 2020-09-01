@@ -15,8 +15,9 @@ provider:
   region: ${opt:region, 'us-east-2'}
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    IMAGES_S3_BUCKET: serverless-todos-images-${self:provider.stage}
+    TODOS_TABLE: Todos-final-${self:provider.stage}
+    USER_ID_INDEX: UserIdIndex
+    IMAGES_S3_BUCKET: serverless-todos-images-final-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
     AUTH_0_SECRET_FIELD: auth0Secret
@@ -27,12 +28,21 @@ provider:
         - dynamodb:Scan
         - dynamodb:PutItem
         - dynamodb:GetItem
+        - dynamodb:DeleteItem
         - dynamodb:Query
+        - dynamodb:UpdateItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
+
     - Effect: Allow
       Action:
         - s3:PutObject
         - s3:GetObject
+        - s3:DeleteObject
       Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
 
 custom:
@@ -113,7 +123,7 @@ functions:
     events:
       - http:
           # changed method to get because we are not sending data to the server
-          method: get
+          method: post
           path: todos/{todoId}/attachment
           cors: true
 
@@ -137,21 +147,25 @@ resources:
         AttributeDefinitions:
           - AttributeName: todoId
             AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
           - AttributeName: createdAt
-            AttributeType: S
-          - AttributeName: name
-            AttributeType: S
-          - AttributeName: dueDate
-            AttributeType: S
-          - AttributeName: done
-            AttributeType: BOOL
-          - AttributeName: attachmentUrl
             AttributeType: S
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.USER_ID_INDEX}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL # What attributes will be copied to an index
+
 
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator

@@ -24,6 +24,7 @@ export const handler: APIGatewayProxyHandler = async (
   let createTodo = {
     todoId,
     userId: getUserId(event),
+    createdAt: new Date().toLocaleString(),
     ...newTodo
   }
 

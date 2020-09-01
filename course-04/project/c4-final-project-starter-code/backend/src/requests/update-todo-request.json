@@ -3,16 +3,13 @@
   "title": "todo",
   "type": "object",
   "properties": {
-    "name": {
+    "attachmentUrl": {
       "type": "string"
     },
-    "dueDate": {
-      "type": "string"
-    },
-    "done": {
-      "type": "boolean"
+    "createdAt": {
+        "type": "string"
     }
   },
-  "required": ["name", "dueDate", "done"],
+  "required": ["attachmentUrl", "createdAt"],
   "additionalProperties": false
 }

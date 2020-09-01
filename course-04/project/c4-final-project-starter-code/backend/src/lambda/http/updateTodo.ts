@@ -17,47 +17,41 @@ export const handler: APIGatewayProxyHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
+  const createdAt = JSON.parse(event.body)['createdAt']
 
   // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
-  docClient.update(
-    {
+  const data = await docClient
+    .update({
       TableName: todosTable,
       Key: {
-        todoId
+        todoId,
+        createdAt
       },
-      UpdateExpression: 'set name = :name, dueDate=:dueDate, done=:done',
+      UpdateExpression: 'set attachmentUrl = :url',
       ExpressionAttributeValues: {
-        ':name': updatedTodo['name'],
-        ':dueDate': updatedTodo['dueDate'],
-        ':done': updatedTodo['done']
+        ':url': updatedTodo['attachmentUrl']
       },
       ReturnValues: 'UPDATED_NEW'
-    },
-    function(err, data) {
-      if (err) {
-        console.error(
-          'Unable to update item. Error JSON:',
-          JSON.stringify(err, null, 2)
-        )
-        return {
-          statusCode: 404,
-          headers: {
-            'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify(
-            `Unable to update item. Error JSON: ${JSON.stringify(err, null, 2)}`
-          )
-        }
-      } else {
-        return {
-            statusCode: 200,
-            headers: {
-              'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify(JSON.stringify(data, null, 2))
-          }
-      }
+    })
+    .promise()
+
+  if (data) {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify(JSON.stringify(data, null, 2))
     }
-  )
+  } else {
+    return {
+      statusCode: 404,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify(`Unable to update item.`)
+    }
+  }
+
   return undefined
 }

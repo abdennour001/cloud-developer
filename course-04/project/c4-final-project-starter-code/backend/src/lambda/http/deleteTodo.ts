@@ -14,6 +14,7 @@ export const handler: APIGatewayProxyHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId
+  const createdAt = JSON.parse(event.body)['createdAt']
 
   // no id handler
   if (!todoId) {
@@ -26,7 +27,12 @@ export const handler: APIGatewayProxyHandler = async (
     }
   }
 
-  docClient.delete({ TableName: todosTable, Key: { todoId } })
+  await docClient
+    .delete({
+      TableName: todosTable,
+      Key: { todoId: todoId, createdAt: createdAt }
+    })
+    .promise()
 
   // TODO: Remove a TODO item by id
   return {
