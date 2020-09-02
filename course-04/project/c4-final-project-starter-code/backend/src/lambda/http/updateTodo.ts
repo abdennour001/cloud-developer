@@ -6,9 +6,12 @@ import {
   APIGatewayProxyResult
 } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
+import { createLogger } from '../../utils/logger'
 
 const docClient = new AWS.DynamoDB.DocumentClient()
 const todosTable = process.env.TODOS_TABLE
+
+const logger = createLogger('update-todo')
 
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 
@@ -20,6 +23,7 @@ export const handler: APIGatewayProxyHandler = async (
   const createdAt = JSON.parse(event.body)['createdAt']
 
   // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
+  logger.info('update todo ', updatedTodo)
   const data = await docClient
     .update({
       TableName: todosTable,
@@ -35,11 +39,14 @@ export const handler: APIGatewayProxyHandler = async (
     })
     .promise()
 
+  logger.info('Todo updated ', data)
+
   if (data) {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify(JSON.stringify(data, null, 2))
     }
@@ -47,7 +54,8 @@ export const handler: APIGatewayProxyHandler = async (
     return {
       statusCode: 404,
       headers: {
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify(`Unable to update item.`)
     }
