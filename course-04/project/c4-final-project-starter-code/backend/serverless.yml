@@ -18,14 +18,6 @@ provider:
   tracing:
     lambda: true
     apiGateway: true
-    # Attention for indentation here
-    iamRoleStatements:            # Permissions here or under every function to trace
-      - Effect: 'Allow'           # xray tracing permissions
-        Action:
-          - 'xray:PutTraceSegments'             # Trace Segments
-          - 'xray:PutTelemetryRecords'          # Telemetry
-        Resource:
-          - '*'
 
   environment:
     TODOS_TABLE: Todos-final-${self:provider.stage}
@@ -35,28 +27,33 @@ provider:
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
     AUTH_0_SECRET_FIELD: auth0Secret
 
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Scan
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:DeleteItem
-        - dynamodb:Query
-        - dynamodb:UpdateItem
-      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
-
-    - Effect: Allow
-      Action:
-        - s3:PutObject
-        - s3:GetObject
-        - s3:DeleteObject
-      Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
+  # iamRoleStatements:            # Permissions here or under every function to trace
+  #   - Effect: Allow             # xray tracing permissions
+  #     Action:
+  #       - xray:PutTraceSegments           # Trace Segments
+  #       - xray:PutTelemetryRecords          # Telemetry
+  #     Resource:
+  #       - '*'
+  # iamRoleStatements:
+  #   - Effect: Allow
+  #     Action:
+  #       - dynamodb:Scan
+  #       - dynamodb:PutItem
+  #       - dynamodb:GetItem
+  #       - dynamodb:DeleteItem
+  #       - dynamodb:Query
+  #       - dynamodb:UpdateItem
+  #     Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+  #   - Effect: Allow
+  #     Action:
+  #       - dynamodb:Query
+  #     Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
+  #   - Effect: Allow
+  #     Action:
+  #       - s3:PutObject
+  #       - s3:GetObject
+  #       - s3:DeleteObject
+  #     Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
 
 custom:
   documentation:
@@ -95,6 +92,12 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
+      - Effect: Allow # xray tracing permissions
+        Action:
+          - xray:PutTraceSegments # Trace Segments
+          - xray:PutTelemetryRecords # Telemetry
+        Resource:
+          - '*'
 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -115,6 +118,12 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow # xray tracing permissions
+        Action:
+          - xray:PutTraceSegments # Trace Segments
+          - xray:PutTelemetryRecords # Telemetry
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   UpdateTodo:
@@ -140,6 +149,12 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
+      - Effect: Allow             # xray tracing permissions
+        Action:
+          - xray:PutTraceSegments           # Trace Segments
+          - xray:PutTelemetryRecords          # Telemetry
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   DeleteTodo:
@@ -162,6 +177,12 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.USER_ID_INDEX}
+      - Effect: Allow             # xray tracing permissions
+        Action:
+          - xray:PutTraceSegments           # Trace Segments
+          - xray:PutTelemetryRecords          # Telemetry
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   GenerateUploadUrl:
@@ -179,6 +200,12 @@ functions:
           - s3:GetObject
           - s3:DeleteObject
         Resource: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
+      - Effect: Allow             # xray tracing permissions
+        Action:
+          - xray:PutTraceSegments           # Trace Segments
+          - xray:PutTelemetryRecords          # Telemetry
+        Resource:
+          - '*'
 resources:
   Resources:
     # TODO: Add any necessary AWS resources
