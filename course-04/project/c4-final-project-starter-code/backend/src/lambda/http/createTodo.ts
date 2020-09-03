@@ -5,14 +5,11 @@ import {
   APIGatewayProxyHandler,
   APIGatewayProxyResult
 } from 'aws-lambda'
-import * as AWS from 'aws-sdk'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { createLogger } from '../../utils/logger'
 import { getUserId } from '../utils'
 import * as uuid from 'uuid'
-
-const docClient = new AWS.DynamoDB.DocumentClient()
-const todosTable = process.env.TODOS_TABLE
+import { createTodo } from '../../businessLogic/todos'
 
 const logger = createLogger('create-todo')
 
@@ -25,19 +22,21 @@ export const handler: APIGatewayProxyHandler = async (
 
   // add auth user ID to our todo
   logger.info('Creating a new todo', newTodo)
-  let createTodo = {
+  let newTodo_ = {
     todoId,
     userId: getUserId(event),
     createdAt: new Date().toLocaleString(),
     ...newTodo
   }
 
-  await docClient
-    .put({
-      TableName: todosTable,
-      Item: createTodo
-    })
-    .promise()
+  await createTodo(newTodo_, getUserId(event))
+
+  //   await docClient
+  //     .put({
+  //       TableName: todosTable,
+  //       Item: createTodo
+  //     })
+  //     .promise()
 
   logger.info('Todo created', createTodo)
 
@@ -48,7 +47,7 @@ export const handler: APIGatewayProxyHandler = async (
       'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({
-      createTodo
+      item: newTodo_
     })
   }
 }

@@ -5,13 +5,14 @@ import {
   APIGatewayProxyResult,
   APIGatewayProxyHandler
 } from 'aws-lambda'
-import * as AWS from 'aws-sdk'
+// import * as AWS from 'aws-sdk'
 import { getUserId } from '../utils'
 import { createLogger } from '../../utils/logger'
+import { getAllTodos } from '../../businessLogic/todos'
 
-const docClient = new AWS.DynamoDB.DocumentClient()
-const todosTable = process.env.TODOS_TABLE
-const userIdIndex = process.env.USER_ID_INDEX
+// const docClient = new AWS.DynamoDB.DocumentClient()
+// const todosTable = process.env.TODOS_TABLE
+// const userIdIndex = process.env.USER_ID_INDEX
 
 const logger = createLogger('get-todos')
 
@@ -22,24 +23,26 @@ export const handler: APIGatewayProxyHandler = async (
 
   logger.info('get todos')
 
-  const result = await docClient
-    .query({
-      TableName: todosTable,
-      IndexName: userIdIndex,
-      KeyConditionExpression: 'userId = :userId',
-      ExpressionAttributeValues: {
-        ':userId': getUserId(event)
-      }
-    })
-    .promise()
+  const result = await getAllTodos(getUserId(event))
 
-  logger.info('todos ', result.Items)
+  //   const result = await docClient
+  //     .query({
+  //       TableName: todosTable,
+  //       IndexName: userIdIndex,
+  //       KeyConditionExpression: 'userId = :userId',
+  //       ExpressionAttributeValues: {
+  //         ':userId': getUserId(event)
+  //       }
+  //     })
+  //     .promise()
+
+  logger.info('todos ', result)
 
   return {
     statusCode: 200,
     headers: {
       'Access-Control-Allow-Origin': '*'
     },
-    body: JSON.stringify({ items: result.Items })
+    body: JSON.stringify({ items: result })
   }
 }

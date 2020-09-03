@@ -2,6 +2,7 @@
  * Fields in a request to update a single TODO item.
  */
 export interface UpdateTodoRequest {
-  attachmentUrl: string
-  createdAt: string
+  name: string
+  dueDate: string
+  done: boolean
 }
